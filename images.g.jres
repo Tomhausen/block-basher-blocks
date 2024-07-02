@@ -9,15 +9,15 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "projectile"
     },
-    "image4": {
-        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMzMAAAAAADMzMzMAAAAwqjqjqgMAADCqMzOqAwAAMzo6o6MzAAAzM6M6MzMAADMzozozMwAAMzo6o6MzAAAwqjMzqgMAADCqOqOqAwAAADMzMzMAAAAAADMzAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-        "mimeType": "image/x-mkcd-f4",
-        "displayName": "randomiser"
-    },
     "image3": {
         "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACqqgAAAAAAoBqqCgAAAACqEaGqAAAAoKoaqqoKAACgqqqqqgoAAKCqoaqqCgAAoBoREaEKAAAAqqqqqgAAAACgqqoKAAAAAACqqgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
         "mimeType": "image/x-mkcd-f4",
         "displayName": "bonus"
+    },
+    "image4": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMzMAAAAAADMzMzMAAAAwqjqjqgMAADCqMzOqAwAAMzo6o6MzAAAzM6M6MzMAADMzozozMwAAMzo6o6MzAAAwqjMzqgMAADCqOqOqAwAAADMzMzMAAAAAADMzAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "randomiser"
     },
     "anim1": {
         "namespace": "myAnimations",

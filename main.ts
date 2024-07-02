@@ -2,7 +2,19 @@ namespace SpriteKind {
     export const Cursor = SpriteKind.create()
     export const Effect = SpriteKind.create()
     export const Path = SpriteKind.create()
+    export const Line = SpriteKind.create()
+    export const Randomiser = SpriteKind.create()
 }
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Randomiser, function (sprite, otherSprite) {
+    angle = spriteutils.degreesToRadians(randint(1, 360))
+    spriteutils.setVelocityAtAngle(sprite, angle, proj_speed)
+    spriteutils.placeAngleFrom(
+    sprite,
+    angle,
+    5,
+    otherSprite
+    )
+})
 function make_lives_text (col: number, row: number) {
     location = tiles.getTileLocation(col, row)
     block_life = tiles.readDataNumber(location, "life")
@@ -16,20 +28,46 @@ function spawn_row () {
             spawn_block(col, 0)
         } else if (randint(1, 5) == 1) {
             spawn_bonus_ball(col, 0)
+        } else if (randint(1, 5) == 1) {
+            spawn_special_block(col, 0)
+        } else if (randint(1, 5) == 1) {
+            spawn_unbreakable_block(col, 0)
+        } else if (randint(1, 5) == 1) {
+            spawn_randomiser(col, 0)
         }
     }
     music.knock.play()
+}
+function horizontal_destroyer_hit (col: number, row: number) {
+    location = tiles.getTileLocation(col, row)
+    for (let value of tilesAdvanced.getAllTilesWhereWallIs(true)) {
+        if (value.row == location.row) {
+            block_damage(location.column, location.row)
+            line_sprite = sprites.create(image.create(160, 2), SpriteKind.Line)
+            line_sprite.image.fill(9)
+            line_sprite.setPosition(80, value.y)
+            line_sprite.lifespan = 500
+        }
+    }
 }
 function move_row () {
     all_blocks = tilesAdvanced.getAllTilesWhereWallIs(true)
     all_blocks.reverse()
     for (let location of all_blocks) {
         if (location.bottom > ghost.top - 16) {
+            if (tiles.tileAtLocationEquals(location, myTiles.tile4)) {
+                tiles.setTileAt(location, myTiles.transparency16)
+                tiles.setWallAt(location, false)
+                continue;
+            }
             game.over(false)
         }
         move_block(location.column, location.row)
     }
     for (let value of sprites.allOfKind(SpriteKind.Food)) {
+        value.y += 16
+    }
+    for (let value of sprites.allOfKind(SpriteKind.Randomiser)) {
         value.y += 16
     }
 }
@@ -51,6 +89,12 @@ function fire () {
     }
 }
 scene.onHitWall(SpriteKind.Projectile, function (proj, location) {
+    if (tiles.tileAtLocationEquals(location, myTiles.tile2)) {
+        horizontal_destroyer_hit(location.column, location.row)
+    }
+    if (tiles.tileAtLocationEquals(location, myTiles.tile3)) {
+        vertical_destroyer_hit(location.column, location.row)
+    }
     if (tiles.tileAtLocationEquals(location, myTiles.tile1)) {
         block_damage(location.column, location.row)
     }
@@ -64,6 +108,18 @@ scene.onHitWall(SpriteKind.Projectile, function (proj, location) {
 browserEvents.MouseLeft.onEvent(browserEvents.MouseButtonEvent.Pressed, function (x, y) {
     draw_path = true
 })
+function spawn_special_block (col: number, row: number) {
+    location = tiles.getTileLocation(col, row)
+    if (randint(1, 2) == 1) {
+        tiles.setTileAt(location, myTiles.tile2)
+    } else {
+        tiles.setTileAt(location, myTiles.tile3)
+    }
+    tiles.setWallAt(location, true)
+    block_life = lives + randint(-2, 2)
+    tiles.setDataNumber(location, "life", block_life)
+    make_lives_text(location.column, location.row)
+}
 function make_power_up_bar () {
     one_shot_active = false
     power_up_bar = statusbars.create(160, 2, StatusBarKind.Magic)
@@ -76,6 +132,11 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         power_up_bar.value = 0
     }
 })
+function spawn_unbreakable_block (col: number, row: number) {
+    location = tiles.getTileLocation(col, row)
+    tiles.setTileAt(location, myTiles.tile4)
+    tiles.setWallAt(location, true)
+}
 function cycle_blocks () {
     move_row()
     spawn_row()
@@ -118,6 +179,12 @@ function path () {
         }
     }
 }
+function spawn_randomiser (col: number, row: number) {
+    location = tiles.getTileLocation(col, row)
+    randomiser_sprite = sprites.create(assets.image`randomiser`, SpriteKind.Randomiser)
+    tiles.placeOnTile(randomiser_sprite, location)
+    randomiser_sprite.setFlag(SpriteFlag.AutoDestroy, true)
+}
 function move_block (col: number, row: number) {
     location = tiles.getTileLocation(col, row)
     new_location = tiles.getTileLocation(col, row + 1)
@@ -153,6 +220,9 @@ function setup () {
     }
 }
 function block_damage (col: number, row: number) {
+    if (tiles.tileAtLocationEquals(location, myTiles.tile4)) {
+        return
+    }
     location = tiles.getTileLocation(col, row)
     new_life = tiles.readDataNumber(location, "life") - 1
     sprites.destroy(tiles.readDataSprite(location, "text"))
@@ -216,7 +286,7 @@ browserEvents.MouseLeft.onEvent(browserEvents.MouseButtonEvent.Released, functio
         ghost,
         assets.animation`ghost throw`,
         100,
-        true
+        false
         )
     }
 })
@@ -226,9 +296,24 @@ sprites.onDestroyed(SpriteKind.Projectile, function (sprite) {
     }
     if (sprites.allOfKind(SpriteKind.Projectile).length < 1) {
         one_shot_active = false
+        if (randint(1, 5) == 1) {
+            lives += 1
+        }
         cycle_blocks()
     }
 })
+function vertical_destroyer_hit (col: number, row: number) {
+    location = tiles.getTileLocation(col, row)
+    for (let value of tilesAdvanced.getAllTilesWhereWallIs(true)) {
+        if (value.column == location.column) {
+            block_damage(location.column, location.row)
+            line_sprite = sprites.create(image.create(2, 120), SpriteKind.Line)
+            line_sprite.image.fill(9)
+            line_sprite.setPosition(value.x, 60)
+            line_sprite.lifespan = 500
+        }
+    }
+}
 function spawn_bonus_ball (col: number, row: number) {
     location = tiles.getTileLocation(col, row)
     bonus_ball = sprites.create(assets.image`bonus`, SpriteKind.Food)
@@ -240,26 +325,29 @@ let effect_sprite: Sprite = null
 let new_life = 0
 let block_image: Image = null
 let new_location: tiles.Location = null
+let randomiser_sprite: Sprite = null
 let dot_sprite: Sprite = null
 let dot: Image = null
 let y_vector = 0
 let x_vector = 0
 let direction = 0
 let aim_sprite: Sprite = null
-let lives = 0
 let power_up_bar: StatusBarSprite = null
+let lives = 0
 let draw_path = false
 let one_shot_active = false
-let proj_speed = 0
 let proj: Sprite = null
 let pointer: Sprite = null
 let fire_angle = 0
 let proj_count = 0
 let ghost: Sprite = null
 let all_blocks: tiles.Location[] = []
+let line_sprite: Sprite = null
 let lives_text: TextSprite = null
 let block_life = 0
 let location: tiles.Location = null
+let proj_speed = 0
+let angle = 0
 setup_vars()
 make_sprites()
 setup_aim_sprite()
