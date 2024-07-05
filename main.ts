@@ -40,13 +40,13 @@ function spawn_row () {
 }
 function horizontal_destroyer_hit (col: number, row: number) {
     location = tiles.getTileLocation(col, row)
+    line_sprite = sprites.create(image.create(160, 2), SpriteKind.Line)
+    line_sprite.image.fill(9)
+    line_sprite.setPosition(80, location.y)
+    line_sprite.lifespan = 500
     for (let value of tilesAdvanced.getAllTilesWhereWallIs(true)) {
         if (value.row == location.row) {
-            block_damage(location.column, location.row)
-            line_sprite = sprites.create(image.create(160, 2), SpriteKind.Line)
-            line_sprite.image.fill(9)
-            line_sprite.setPosition(80, value.y)
-            line_sprite.lifespan = 500
+            block_damage(value.column, value.row)
         }
     }
 }
@@ -304,13 +304,13 @@ sprites.onDestroyed(SpriteKind.Projectile, function (sprite) {
 })
 function vertical_destroyer_hit (col: number, row: number) {
     location = tiles.getTileLocation(col, row)
+    line_sprite = sprites.create(image.create(2, 120), SpriteKind.Line)
+    line_sprite.image.fill(9)
+    line_sprite.setPosition(location.x, 60)
+    line_sprite.lifespan = 500
     for (let value of tilesAdvanced.getAllTilesWhereWallIs(true)) {
         if (value.column == location.column) {
-            block_damage(location.column, location.row)
-            line_sprite = sprites.create(image.create(2, 120), SpriteKind.Line)
-            line_sprite.image.fill(9)
-            line_sprite.setPosition(value.x, 60)
-            line_sprite.lifespan = 500
+            block_damage(value.column, value.row)
         }
     }
 }
